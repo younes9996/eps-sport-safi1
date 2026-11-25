@@ -1,59 +1,153 @@
+"use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
+import AdminShell from "./AdminShell";
+import {
+  IconArrowLeft,
+  IconCalendar,
+  IconCamera,
+  IconFolder,
+  IconMedal,
+  IconNews,
+  IconTrophy,
+  IconUsers,
+} from "@/app/components/icons";
 
-const modules = [
-  { title: "الأخبار والإعلانات", subtitle: "نشر وتدبير الأخبار", icon: "📰", href: "/admin/actualites", color: "#16865d" },
-  { title: "المسابقات والبطولات", subtitle: "تنظيم المنافسات الرياضية", icon: "🏆", href: "/admin/competitions", color: "#d69b25" },
-  { title: "النتائج والترتيب", subtitle: "إدخال النتائج وتتبع الترتيب", icon: "🥇", href: "/admin/resultats", color: "#4778c7" },
-  { title: "البرمجة الرياضية", subtitle: "تحديد مواعيد المباريات", icon: "📅", href: "/admin/programmation", color: "#9a65bb" },
-  { title: "المؤسسات التعليمية", subtitle: "تدبير المؤسسات المشاركة", icon: "🏫", href: "/admin/etablissements", color: "#dc7043" },
-  { title: "سجل الأبطال", subtitle: "تدبير الألقاب والإنجازات", icon: "🏅", href: "/admin/palmares", color: "#188e9b" },
+const sections = [
+  {
+    title: "الأخبار والمستجدات",
+    description: "نشر الأخبار والإعلانات مع صورة لكل خبر",
+    href: "/admin/contenus?section=actualites",
+    Icon: IconNews,
+    tone: "bg-sky-100 text-sky-700",
+    countKey: "actualites",
+  },
+  {
+    title: "معرض الصور",
+    description: "إضافة صور الأنشطة والبطولات الرياضية",
+    href: "/admin/contenus?section=galerie",
+    Icon: IconCamera,
+    tone: "bg-violet-100 text-violet-700",
+    countKey: "galerie",
+  },
+  {
+    title: "سجل الأبطال",
+    description: "تدبير الأبطال والإنجازات الرياضية",
+    href: "/admin/contenus?section=palmares",
+    Icon: IconMedal,
+    tone: "bg-orange-100 text-orange-700",
+    countKey: "palmares",
+  },
+  {
+    title: "أرقام الصفحة الرئيسية",
+    description: "عدد المشاركين والمؤسسات والبطولات",
+    href: "/admin/settings",
+    Icon: IconUsers,
+    tone: "bg-emerald-100 text-emerald-700",
+    countKey: null,
+  },
+  {
+    title: "البطولات والمنافسات",
+    description: "وثائق البطولات والمسابقات الرياضية (PDF)",
+    href: "/admin/competitions",
+    Icon: IconTrophy,
+    tone: "bg-amber-100 text-amber-700",
+    countKey: null,
+  },
+  {
+    title: "الترتيب والنتائج النهائية",
+    description: "نشر النتائج والترتيب النهائي (PDF)",
+    href: "/admin/rankings",
+    Icon: IconMedal,
+    tone: "bg-yellow-100 text-yellow-700",
+    countKey: null,
+  },
+  {
+    title: "البرمجة الرياضية",
+    description: "برنامج المنافسات والمواعيد (PDF)",
+    href: "/admin/programming",
+    Icon: IconCalendar,
+    tone: "bg-blue-100 text-blue-700",
+    countKey: null,
+  },
+  {
+    title: "الوثائق والمراجع",
+    description: "الوثائق الرسمية حسب التصنيفات الأربعة",
+    href: "/admin/documents",
+    Icon: IconFolder,
+    tone: "bg-teal-100 text-teal-700",
+    countKey: null,
+  },
 ];
 
 export default function AdminPage() {
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    async function loadCounts() {
+      const result: Record<string, number> = {};
+      for (const key of ["actualites", "galerie", "palmares"]) {
+        const { count } = await supabase
+          .from("content_items")
+          .select("id", { count: "exact", head: true })
+          .eq("section", key);
+        result[key] = count ?? 0;
+      }
+      setCounts(result);
+    }
+    loadCounts();
+  }, []);
+
   return (
-    <main dir="rtl" style={{ minHeight: "100vh", background: "#f3f7fa", color: "#102c4b", fontFamily: "Arial" }}>
-      <header style={{ background: "#102c4b", color: "white", padding: "20px 5%", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 15 }}>
+    <AdminShell
+      title="لوحة الإدارة"
+      subtitle="من هنا تدبر كل محتوى الموقع: الأخبار، الصور، الأبطال، الأرقام والوثائق."
+    >
+      {/* ترحيب */}
+      <div className="mb-8 flex flex-wrap items-center justify-between gap-6 rounded-2xl bg-[#082d59] p-7 text-white shadow-sm">
         <div>
-          <h2 style={{ margin: 0 }}>🏆 إدارة الرياضة المدرسية</h2>
-          <small style={{ color: "#cbd5e1" }}>الفرع الإقليمي – آسفي</small>
-        </div>
-        <Link href="/" style={{ color: "white", border: "1px solid #ffffff55", padding: "10px 17px", borderRadius: 8 }}>
-          العودة للموقع ↗
-        </Link>
-      </header>
-
-      <section style={{ padding: "40px 6%" }}>
-        <p style={{ color: "#15966a", fontWeight: "bold" }}>ESPACE ADMINISTRATION</p>
-        <h1 style={{ fontSize: 32, margin: "10px 0" }}>لوحة القيادة</h1>
-        <p style={{ color: "#64748b" }}>مرحبا بك في فضاء تدبير منصة الرياضة المدرسية بإقليم آسفي.</p>
-
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 20, marginTop: 35 }}>
-          {modules.map((item) => (
-            <Link key={item.href} href={item.href} style={{ background: "white", borderRadius: 15, padding: 25, border: "1px solid #e5edf2", color: "#102c4b", boxShadow: "0 4px 15px #102c4b08" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 13, background: `${item.color}18`, display: "grid", placeItems: "center", fontSize: 27 }}>
-                {item.icon}
-              </div>
-              <h3 style={{ margin: "20px 0 8px" }}>{item.title}</h3>
-              <p style={{ color: "#64748b", fontSize: 14 }}>{item.subtitle}</p>
-              <strong style={{ color: item.color, fontSize: 13 }}>فتح القسم ←</strong>
-            </Link>
-          ))}
-        </div>
-
-        <div style={{ marginTop: 30, padding: 25, background: "white", borderRadius: 15, border: "1px solid #e5edf2" }}>
-          <h3>معلومات المنصة</h3>
-          <p style={{ color: "#64748b", lineHeight: 2 }}>
-            الموسم الرياضي: 2026–2027<br />
-            المجال الترابي: إقليم آسفي<br />
-            المنصة: الرياضة المدرسية – Sport Scolaire Safi
+          <h2 className="text-2xl font-black">مرحباً بك في فضاء الإدارة</h2>
+          <p className="mt-2 max-w-2xl leading-8 text-blue-100">
+            كل ما تضيفه هنا يظهر مباشرة في الموقع. ابدأ بإضافة آخر الأخبار وصور الأنشطة.
           </p>
         </div>
-      </section>
+        <Link
+          href="/admin/contenus?section=actualites"
+          className="rounded-full bg-amber-400 px-6 py-3 font-extrabold text-[#082d59] transition hover:bg-amber-300"
+        >
+          + إضافة خبر جديد
+        </Link>
+      </div>
 
-      <footer style={{ background: "#102c4b", color: "white", padding: 20, textAlign: "center" }}>
-        Branche Provinciale du Sport Scolaire – Safi © 2026
-      </footer>
-    </main>
+      {/* الأقسام */}
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {sections.map(({ title, description, href, Icon, tone, countKey }) => (
+          <Link
+            key={href}
+            href={href}
+            className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-amber-300 hover:shadow-lg"
+          >
+            <div className="mb-4 flex items-start justify-between">
+              <span className={`flex h-14 w-14 items-center justify-center rounded-2xl ${tone}`}>
+                <Icon className="h-7 w-7" />
+              </span>
+              {countKey && (
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-bold text-slate-600">
+                  {counts[countKey] ?? "…"}
+                </span>
+              )}
+            </div>
+            <h3 className="text-lg font-extrabold text-[#082d59]">{title}</h3>
+            <p className="mt-2 flex-1 text-sm leading-7 text-slate-500">{description}</p>
+            <span className="mt-4 flex items-center gap-1.5 border-t border-slate-100 pt-4 text-sm font-bold text-amber-700">
+              الدخول إلى القسم
+              <IconArrowLeft className="h-4 w-4 transition group-hover:-translate-x-1" />
+            </span>
+          </Link>
+        ))}
+      </div>
+    </AdminShell>
   );
 }
